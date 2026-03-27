@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Wishlist - Velora</title>
+<link href="./output.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: #f1f3f6; min-height: 100vh; }
+
+  /* ══ NAVBAR ══ */
+  .navbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: #2874f0; height: 56px; padding: 0 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .navbar-brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem; font-weight: 700;
+    color: #fff; cursor: pointer; letter-spacing: 0.5px;
+  }
+  .navbar-right { display: flex; align-items: center; gap: 20px; }
+  .navbar-right button {
+    background: none; border: none; color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem; font-weight: 500;
+    cursor: pointer; display: flex; align-items: center; gap: 6px;
+    transition: opacity 0.15s;
+  }
+  .navbar-right button:hover { opacity: 0.85; text-decoration: underline; }
+  .cart-badge {
+    background: #ff6161; color: #fff;
+    font-size: 0.65rem; font-weight: 800;
+    width: 18px; height: 18px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin-left: -4px; margin-top: -10px;
+  }
+
+  /* ══ PAGE ══ */
+  .page-wrap { max-width: 1100px; margin: 0 auto; padding: 68px 16px 40px; }
+
+  /* ══ PAGE HEADER ══ */
+  .page-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px; flex-wrap: wrap; gap: 10px;
+  }
+  .page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem; font-weight: 700; color: #212121;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .page-title span {
+    font-size: 0.82rem; font-weight: 600; color: #888;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .clear-all-btn {
+    background: none; border: 1.5px solid #e0e0e0;
+    color: #777; font-size: 0.8rem; font-weight: 600;
+    padding: 7px 16px; border-radius: 2px; cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .clear-all-btn:hover { border-color: #d32f2f; color: #d32f2f; }
+
+  /* ══ LAYOUT ══ */
+  .wishlist-layout {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 16px; align-items: start;
+  }
+  @media (max-width: 768px) { .wishlist-layout { grid-template-columns: 1fr; } }
+
+  /* ══ ITEM GRID ══ */
+  .item-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+
+  /* ══ WISHLIST CARD ══ */
+  .wish-card {
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    transition: box-shadow 0.2s, transform 0.2s;
+    cursor: pointer;
+  }
+  .wish-card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+  }
+
+  /* Remove X button */
+  .remove-x {
+    position: absolute; top: 8px; right: 8px;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #fff; border: 1px solid #e0e0e0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; color: #666; cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    z-index: 2; transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .remove-x:hover { background: #d32f2f; color: #fff; border-color: #d32f2f; }
+
+  /* Out of stock overlay */
+  .oos-overlay {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(255,255,255,0.75);
+    display: none; align-items: center; justify-content: center;
+    z-index: 1;
+  }
+  .oos-overlay span {
+    background: #212121; color: #fff;
+    font-size: 0.75rem; font-weight: 700;
+    padding: 6px 14px; border-radius: 2px; letter-spacing: 0.05em;
+  }
+  .wish-card.oos .oos-overlay { display: flex; }
+
+  /* Image */
+  .wish-img {
+    width: 100%; height: 200px;
+    object-fit: cover; background: #fafafa;
+    display: block;
+  }
+
+  /* Card Body */
+  .wish-body { padding: 12px; }
+  .wish-title {
+    font-size: 0.88rem; font-weight: 600; color: #212121;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    margin-bottom: 4px;
+  }
+  .wish-brand { font-size: 0.75rem; color: #999; margin-bottom: 8px; }
+
+  /* Rating mini */
+  .wish-rating {
+    display: inline-flex; align-items: center; gap: 3px;
+    background: #388e3c; color: #fff;
+    font-size: 0.7rem; font-weight: 700;
+    padding: 2px 6px; border-radius: 3px;
+    margin-bottom: 8px;
+  }
+
+  /* Price */
+  .wish-price-row { display: flex; align-items: baseline; gap: 6px; margin-bottom: 12px; }
+  .wish-price { font-size: 1rem; font-weight: 800; color: #212121; }
+  .wish-mrp   { font-size: 0.78rem; color: #aaa; text-decoration: line-through; }
+  .wish-off   { font-size: 0.72rem; color: #388e3c; font-weight: 700; }
+
+  /* Card Actions */
+  .wish-actions { display: flex; flex-direction: column; gap: 7px; }
+  .btn-move-cart {
+    width: 100%; padding: 10px;
+    background: #ff9f00; color: #fff; border: none;
+    font-size: 0.82rem; font-weight: 700;
+    letter-spacing: 0.04em; border-radius: 2px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .btn-move-cart:hover  { background: #e68f00; transform: translateY(-1px); }
+  .btn-move-cart:active { transform: translateY(0); }
+  .btn-view {
+    width: 100%; padding: 9px;
+    background: #fff; color: #555;
+    border: 1.5px solid #e0e0e0;
+    font-size: 0.78rem; font-weight: 600;
+    border-radius: 2px; cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn-view:hover { border-color: #2874f0; color: #2874f0; }
+
+  /* ══ EMPTY STATE ══ */
+  .empty-state {
+    display: none; grid-column: 1 / -1;
+    flex-direction: column; align-items: center;
+    text-align: center; background: #fff;
+    border: 1px solid #e8e8e8; border-radius: 4px;
+    padding: 80px 24px; gap: 14px;
+  }
+  .empty-state.show { display: flex; }
+  .empty-icon { font-size: 5rem; opacity: 0.18; line-height: 1; }
+  .empty-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem; font-weight: 700; color: #555;
+  }
+  .empty-sub { font-size: 0.85rem; color: #aaa; max-width: 260px; }
+  .empty-shop-btn {
+    margin-top: 6px; background: #2874f0; color: #fff;
+    border: none; padding: 12px 36px; border-radius: 2px;
+    font-size: 0.9rem; font-weight: 600; cursor: pointer;
+    transition: background 0.2s;
+  }
+  .empty-shop-btn:hover { background: #1a5bbf; }
+
+  /* ══ SIDEBAR ══ */
+  .sidebar-card {
+    background: #fff; border: 1px solid #e8e8e8;
+    border-radius: 4px; padding: 18px;
+    margin-bottom: 12px;
+  }
+  .sidebar-title {
+    font-size: 0.75rem; font-weight: 700; color: #878787;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 10px; margin-bottom: 14px;
+  }
+
+  /* Share wishlist */
+  .share-btn {
+    width: 100%; padding: 11px;
+    border: 1.5px solid #2874f0; color: #2874f0;
+    background: #fff; border-radius: 2px;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: background 0.15s;
+    margin-bottom: 10px;
+  }
+  .share-btn:hover { background: #f0f6ff; }
+
+  .move-all-btn {
+    width: 100%; padding: 11px;
+    background: #fb641b; color: #fff; border: none;
+    border-radius: 2px; font-size: 0.85rem; font-weight: 700;
+    cursor: pointer; letter-spacing: 0.04em;
+    transition: background 0.2s;
+  }
+  .move-all-btn:hover { background: #e05510; }
+
+  /* Stats */
+  .stat-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid #f5f5f5;
+    font-size: 0.85rem; color: #444;
+  }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-val { font-weight: 700; color: #212121; }
+
+  /* Recently Viewed */
+  .recently-viewed { display: flex; flex-direction: column; gap: 10px; }
+  .rv-item {
+    display: flex; gap: 10px; align-items: center;
+    padding: 8px; border: 1px solid #f0f0f0; border-radius: 4px;
+    cursor: pointer; transition: box-shadow 0.15s;
+  }
+  .rv-item:hover { box-shadow: 0 1px 6px rgba(0,0,0,0.07); }
+  .rv-img {
+    width: 48px; height: 48px; border-radius: 3px;
+    object-fit: cover; background: #f5f5f5; flex-shrink: 0;
+  }
+  .rv-info { flex: 1; min-width: 0; }
+  .rv-title { font-size: 0.8rem; font-weight: 600; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rv-price { font-size: 0.78rem; color: #888; margin-top: 2px; }
+  .rv-add-btn {
+    background: none; border: 1px solid #e0e0e0;
+    color: #e91e63; font-size: 0.7rem; font-weight: 700;
+    padding: 3px 8px; border-radius: 2px; cursor: pointer;
+    white-space: nowrap; transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .rv-add-btn:hover { background: #e91e63; color: #fff; border-color: #e91e63; }
+
+  /* ══ TOAST ══ */
+  .toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+    background: #212121; color: #fff;
+    padding: 12px 28px; border-radius: 6px;
+    font-size: 0.88rem; z-index: 9999;
+    opacity: 0; transition: opacity 0.3s;
+    pointer-events: none; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+
+  /* ══ SORT BAR ══ */
+  .sort-bar {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 14px; flex-wrap: wrap;
+  }
+  .sort-label { font-size: 0.8rem; color: #888; font-weight: 500; }
+  .sort-btn {
+    background: #fff; border: 1px solid #e0e0e0;
+    color: #555; font-size: 0.78rem; font-weight: 600;
+    padding: 5px 14px; border-radius: 20px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .sort-btn:hover  { border-color: #2874f0; color: #2874f0; }
+  .sort-btn.active { background: #2874f0; color: #fff; border-color: #2874f0; }
+</style>
+</head>
+
+<body>
+
+<!-- ══════════════════════════ NAVBAR ══════════════════════════ -->
+<nav class="navbar">
+  <span class="navbar-brand" onclick="goHome()">Velora</span>
+
+  <div class="navbar-right">
+
+    <!-- USER EMAIL -->
+    <span id="user-email" style="margin-right:10px; font-size:14px;"></span>
+
+    <!-- HOME -->
+    <button onclick="goHome()">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      Home
+    </button>
+
+    <!-- CART -->
+    <button onclick="goCart()" style="position:relative">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="9" cy="21" r="1"/>
+        <circle cx="20" cy="21" r="1"/>
+        <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
+      </svg>
+      Cart
+      <span class="cart-badge" id="cart-count">0</span>
+    </button>
+
+    <!-- LOGOUT -->
+    <button onclick="logout()" style="background:red;color:white;padding:4px 10px;border-radius:4px;">
+      Logout
+    </button>
+
+  </div>
+</nav>
+
+<!-- ══════════════════════════ PAGE ══════════════════════════ -->
+<div class="page-wrap">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="page-title">
+      ❤️ My Wishlist
+      <span id="wish-count-label">0 items</span>
+    </div>
+    <button class="clear-all-btn" onclick="clearAll()">🗑 Clear All</button>
+  </div>
+
+  <!-- Sort Bar -->
+  <div class="sort-bar">
+    <span class="sort-label">Sort by:</span>
+    <button class="sort-btn active" onclick="sortWishlist('default', this)">Default</button>
+    <button class="sort-btn" onclick="sortWishlist('price-low', this)">Price: Low to High</button>
+    <button class="sort-btn" onclick="sortWishlist('price-high', this)">Price: High to Low</button>
+    <button class="sort-btn" onclick="sortWishlist('name', this)">Name A–Z</button>
+  </div>
+
+  <!-- Layout -->
+  <div class="wishlist-layout">
+
+    <!-- LEFT: Items -->
+    <div>
+      <div class="item-grid" id="wish-grid">
+
+        <!-- Empty State inside grid -->
+        <div id="empty-state" class="empty-state">
+          <div class="empty-icon">❤️</div>
+          <div class="empty-title">Your Wishlist is empty</div>
+          <p class="empty-sub">Save items you love here. Review them anytime and easily move them to cart.</p>
+          <button class="empty-shop-btn" onclick="goHome()">Explore Products</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RIGHT: Sidebar -->
+    <div id="sidebar">
+
+      <!-- Actions -->
+      <div class="sidebar-card">
+        <div class="sidebar-title">Wishlist Actions</div>
+        <button class="share-btn" onclick="shareWishlist()">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Share Wishlist
+        </button>
+        <button class="move-all-btn" onclick="moveAllToCart()">
+          🛒 Move All to Cart
+        </button>
+      </div>
+
+      <!-- Stats -->
+      <div class="sidebar-card">
+        <div class="sidebar-title">Summary</div>
+        <div class="stat-row">
+          <span>Total Items</span>
+          <span class="stat-val" id="stat-items">0</span>
+        </div>
+        <div class="stat-row">
+          <span>Total Value</span>
+          <span class="stat-val" id="stat-value">₹0</span>
+        </div>
+        <div class="stat-row">
+          <span>You Save</span>
+          <span class="stat-val" style="color:#388e3c" id="stat-save">₹0</span>
+        </div>
+      </div>
+
+      <!-- Recently Viewed (static suggestions) -->
+      <div class="sidebar-card">
+        <div class="sidebar-title">You May Also Like</div>
+        <div class="recently-viewed">
+          <div class="rv-item">
+            <img src="images/shoes1.jpg" class="rv-img" alt="shoe" onerror="this.style.background='#eee'">
+            <div class="rv-info">
+              <div class="rv-title">Velora Street Pro</div>
+              <div class="rv-price">₹1,899</div>
+            </div>
+            <button class="rv-add-btn" onclick="addSuggestion('Velora Street Pro', 1899)">+ Wish</button>
+          </div>
+          <div class="rv-item">
+            <img src="images/shoes1.jpg" class="rv-img" alt="shoe" onerror="this.style.background='#eee'">
+            <div class="rv-info">
+              <div class="rv-title">Velora Trail Blazer</div>
+              <div class="rv-price">₹2,199</div>
+            </div>
+            <button class="rv-add-btn" onclick="addSuggestion('Velora Trail Blazer', 2199)">+ Wish</button>
+          </div>
+          <div class="rv-item">
+            <img src="images/shoes1.jpg" class="rv-img" alt="shoe" onerror="this.style.background='#eee'">
+            <div class="rv-info">
+              <div class="rv-title">Velora Classic White</div>
+              <div class="rv-price">₹1,599</div>
+            </div>
+            <button class="rv-add-btn" onclick="addSuggestion('Velora Classic White', 1599)">+ Wish</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ══════════════════════════ SCRIPT ══════════════════════════ -->
+<script>
+
+if(!localStorage.getItem("loggedIn")){
+  alert("Please login first 🔒");
+  window.location = "login.html";
+  throw new Error("Not logged in");
+}
+
+let user = JSON.parse(localStorage.getItem("user"));
+
+if(user){
+  document.getElementById("user-email").innerText = user.email;
+}
+
+function logout(){
+  localStorage.removeItem("loggedIn");
+  alert("Logged out 👋");
+  window.location = "login.html";
+}
+
+let wishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
+
+/* ─── Render ─── */
+function renderWishlist() {
+  const grid    = document.getElementById("wish-grid");
+  const emptyEl = document.getElementById("empty-state");
+
+  // Remove existing cards (keep empty state el)
+  grid.querySelectorAll(".wish-card").forEach(c => c.remove());
+
+  if (wishlist.length === 0) {
+    emptyEl.classList.add("show");
+    updateSidebar();
+    document.getElementById("wish-count-label").innerText = "0 items";
+    return;
+  }
+
+  emptyEl.classList.remove("show");
+  document.getElementById("wish-count-label").innerText = wishlist.length + " item" + (wishlist.length > 1 ? "s" : "");
+
+  wishlist.forEach((item, i) => {
+    const price    = item.price || 1999;
+    const origPrice = Math.round(price * 1.35);
+    const discPct  = Math.round(((origPrice - price) / origPrice) * 100);
+    const isOOS    = item.outOfStock || false;
+
+    const card = document.createElement("div");
+    card.className = "wish-card" + (isOOS ? " oos" : "");
+
+    card.innerHTML = `
+      <!-- OOS overlay -->
+      <div class="oos-overlay"><span>OUT OF STOCK</span></div>
+
+      <!-- Remove -->
+      <button class="remove-x" onclick="removeItem(event, ${i})" title="Remove">✕</button>
+
+      <!-- Image -->
+      <img class="wish-img"
+           src="${item.img || 'images/shoes1.jpg'}"
+           alt="${item.title}"
+           onclick="viewProduct(${i})"
+           onerror="this.src=''; this.style.background='#f0f0f0'; this.style.height='200px'">
+
+      <!-- Body -->
+      <div class="wish-body">
+        <div class="wish-title" title="${item.title}">${item.title}</div>
+        <div class="wish-brand">Velora Originals</div>
+
+        <div class="wish-rating">4.3 ★</div>
+
+        <div class="wish-price-row">
+          <span class="wish-price">₹${price.toLocaleString("en-IN")}</span>
+          <span class="wish-mrp">₹${origPrice.toLocaleString("en-IN")}</span>
+          <span class="wish-off">${discPct}% off</span>
+        </div>
+
+        <div class="wish-actions">
+          <button class="btn-move-cart" onclick="moveToCart(event, ${i})" ${isOOS ? 'disabled style="opacity:0.5;cursor:not-allowed"' : ''}>
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+            ${isOOS ? 'OUT OF STOCK' : 'MOVE TO CART'}
+          </button>
+          <button class="btn-view" onclick="viewProduct(${i})">
+            View Full Details
+          </button>
+        </div>
+      </div>
+    `;
+
+    grid.appendChild(card);
+  });
+
+  updateSidebar();
+  updateCartCount();
+}
+
+/* ─── Remove Item ─── */
+function removeItem(e, i) {
+  e.stopPropagation();
+  wishlist.splice(i, 1);
+  save();
+  renderWishlist();
+  showToast("Removed from Wishlist");
+}
+
+/* ─── Move to Cart ─── */
+function moveToCart(e, i) {
+  e.stopPropagation();
+  let cart = JSON.parse(localStorage.getItem("cart")) || [];
+  cart.push({ ...wishlist[i], qty: 1 });
+  localStorage.setItem("cart", JSON.stringify(cart));
+
+  wishlist.splice(i, 1);
+  save();
+  renderWishlist();
+  showToast("✅ Moved to Cart!");
+}
+
+/* ─── Move All to Cart ─── */
+function moveAllToCart() {
+  if (wishlist.length === 0) { showToast("Your wishlist is empty!"); return; }
+  let cart = JSON.parse(localStorage.getItem("cart")) || [];
+  wishlist.forEach(item => cart.push({ ...item, qty: 1 }));
+  localStorage.setItem("cart", JSON.stringify(cart));
+
+  wishlist = [];
+  save();
+  renderWishlist();
+  showToast("🛒 All items moved to Cart!");
+}
+
+/* ─── View Product ─── */
+function viewProduct(i) {
+  localStorage.setItem("product", JSON.stringify(wishlist[i]));
+  window.location = "product.html";
+}
+
+/* ─── Clear All ─── */
+function clearAll() {
+  if (wishlist.length === 0) return;
+  if (!confirm("Remove all items from wishlist?")) return;
+  wishlist = [];
+  save();
+  renderWishlist();
+  showToast("Wishlist cleared");
+}
+
+/* ─── Sort ─── */
+function sortWishlist(type, btn) {
+  document.querySelectorAll(".sort-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+
+  if (type === "price-low")  wishlist.sort((a, b) => (a.price||0) - (b.price||0));
+  if (type === "price-high") wishlist.sort((a, b) => (b.price||0) - (a.price||0));
+  if (type === "name")       wishlist.sort((a, b) => a.title.localeCompare(b.title));
+  if (type === "default")    wishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
+
+  renderWishlist();
+}
+
+/* ─── Add Suggestion ─── */
+function addSuggestion(title, price) {
+  if (wishlist.some(w => w.title === title)) {
+    showToast("Already in Wishlist!"); return;
+  }
+  wishlist.push({ title, price, img: "images/shoes1.jpg" });
+  save();
+  renderWishlist();
+  showToast("❤️ Added to Wishlist!");
+}
+
+/* ─── Share Wishlist ─── */
+function shareWishlist() {
+  const text = "My Velora Wishlist:\n" + wishlist.map(w => `• ${w.title} — ₹${w.price}`).join("\n");
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => showToast("📋 Wishlist copied to clipboard!"));
+  } else {
+    showToast("Share: " + window.location.href);
+  }
+}
+
+/* ─── Sidebar Stats ─── */
+function updateSidebar() {
+  const total = wishlist.reduce((s, i) => s + (i.price || 0), 0);
+  const mrp   = wishlist.reduce((s, i) => s + Math.round((i.price || 0) * 1.35), 0);
+  const save  = mrp - total;
+
+  document.getElementById("stat-items").innerText = wishlist.length;
+  document.getElementById("stat-value").innerText = "₹" + total.toLocaleString("en-IN");
+  document.getElementById("stat-save").innerText  = "₹" + save.toLocaleString("en-IN");
+}
+
+/* ─── Cart Count ─── */
+function updateCartCount() {
+  let cart = JSON.parse(localStorage.getItem("cart")) || [];
+  document.getElementById("cart-count").innerText = cart.length;
+}
+
+/* ─── Save ─── */
+function save() { localStorage.setItem("wishlist", JSON.stringify(wishlist)); }
+
+/* ─── Toast ─── */
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.innerText = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2500);
+}
+
+/* ─── Nav ─── */
+function goHome() { window.location = "shoes.html"; }
+function goCart() { window.location = "cart.html"; }
+
+/* ─── Init ─── */
+renderWishlist();
+
+</script>
+</body>
+</html>
+```
+
+<!-- ---
+
+**What's included:**
+
+| Feature | Detail |
+|---|---|
+| 🗂 Card Grid | Auto-fill responsive grid, hover lift effect |
+| ✕ Remove button | Per card, top-right corner like Flipkart |
+| 🛒 Move to Cart | Per item + **Move All to Cart** button |
+| 📊 Sort bar | Default / Price Low-High / Price High-Low / A–Z |
+| 📋 Sidebar Stats | Total items, total value, total savings |
+| 🔗 Share Wishlist | Copies wishlist text to clipboard |
+| 💡 You May Also Like | Suggested products sidebar |
+| ❌ Out of Stock | OOS overlay + disabled button support |
+| 🪹 Empty State | Beautiful empty screen with Shop Now |
+| 🍞 Toast notifications | No `alert()` anywhere |
+
+---
+
+**Your full project files are now:**
+```
+✅ product.html
+✅ cart.html
+✅ wishlist.html -->

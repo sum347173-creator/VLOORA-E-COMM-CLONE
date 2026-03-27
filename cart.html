@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Cart - Velora</title>
+<link href="./output.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: #f1f3f6; min-height: 100vh; }
+
+  /* ── Navbar ── */
+  .navbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: #2874f0;
+    padding: 0 24px;
+    height: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .navbar-brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem; font-weight: 700;
+    color: #fff; cursor: pointer; letter-spacing: 0.5px;
+  }
+  .navbar-links { display: flex; align-items: center; gap: 24px; }
+  .navbar-links button {
+    background: none; border: none; color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem; font-weight: 500;
+    cursor: pointer; display: flex; align-items: center; gap: 6px;
+    opacity: 0.92; transition: opacity 0.15s;
+  }
+  .navbar-links button:hover { opacity: 1; text-decoration: underline; }
+
+  /* ── Wrapper ── */
+  .page-wrap { max-width: 1100px; margin: 0 auto; padding: 72px 16px 40px; }
+
+  /* ── Step Bar ── */
+  .step-bar {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.82rem; color: #999; margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .step-bar .active { color: #2874f0; font-weight: 700; }
+  .step-bar .sep { color: #ccc; }
+
+  /* ── Layout ── */
+  .cart-layout {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 16px;
+    align-items: start;
+  }
+  @media (max-width: 768px) {
+    .cart-layout { grid-template-columns: 1fr; }
+  }
+
+  /* ── Delivery Banner ── */
+  .delivery-banner {
+    background: #fff; border-radius: 4px;
+    border: 1px solid #e8e8e8;
+    padding: 12px 16px;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 0.88rem; color: #444;
+    margin-bottom: 12px;
+  }
+  .delivery-banner b { color: #222; }
+  .delivery-banner .change-btn {
+    margin-left: auto; color: #2874f0; font-weight: 600;
+    font-size: 0.8rem; background: none; border: none; cursor: pointer;
+  }
+  .delivery-banner .change-btn:hover { text-decoration: underline; }
+
+  /* ── Cart Item Card ── */
+  .cart-item {
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    padding: 20px 16px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 8px;
+    transition: box-shadow 0.2s;
+  }
+  .cart-item:hover { box-shadow: 0 1px 8px rgba(0,0,0,0.08); }
+
+  /* Image box */
+  .item-img-box {
+    width: 112px; height: 112px;
+    flex-shrink: 0;
+    border: 1px solid #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #fafafa;
+  }
+  .item-img-box img {
+    width: 100%; height: 100%; object-fit: cover;
+  }
+
+  /* Item content */
+  .item-content { flex: 1; min-width: 0; }
+
+  .item-title {
+    font-size: 0.97rem; font-weight: 600; color: #212121;
+    margin-bottom: 3px; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .item-meta {
+    font-size: 0.78rem; color: #888; margin-bottom: 8px;
+  }
+  .item-meta b { color: #555; }
+
+  /* Price row */
+  .item-price-row {
+    display: flex; align-items: baseline; gap: 8px;
+    margin-bottom: 12px;
+  }
+  .item-price     { font-size: 1.05rem; font-weight: 700; color: #212121; }
+  .item-mrp       { font-size: 0.85rem; color: #aaa; text-decoration: line-through; }
+  .item-discount  { font-size: 0.82rem; color: #388e3c; font-weight: 600; }
+
+  /* Qty controls */
+  .qty-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 14px;
+  }
+  .qty-label { font-size: 0.82rem; color: #666; font-weight: 500; }
+  .qty-controls { display: flex; align-items: center; gap: 0; border: 1px solid #ddd; border-radius: 4px; overflow: hidden; }
+  .qty-btn {
+    width: 34px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    background: #f7f7f7; border: none;
+    font-size: 1.1rem; font-weight: 700; color: #444;
+    cursor: pointer; transition: background 0.15s;
+    user-select: none;
+  }
+  .qty-btn:hover { background: #ebebeb; }
+  .qty-num {
+    width: 38px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem; font-weight: 700; color: #212121;
+    border-left: 1px solid #ddd; border-right: 1px solid #ddd;
+    background: #fff;
+  }
+
+  /* Actions */
+  .item-actions {
+    display: flex; align-items: center; gap: 0;
+    border-top: 1px solid #f0f0f0; padding-top: 12px;
+  }
+  .action-btn {
+    background: none; border: none;
+    font-size: 0.82rem; font-weight: 600;
+    cursor: pointer; padding: 4px 16px 4px 0;
+    transition: color 0.15s;
+  }
+  .action-btn.remove { color: #555; }
+  .action-btn.remove:hover { color: #d32f2f; }
+  .action-btn.save   { color: #555; border-left: 1px solid #e0e0e0; padding-left: 16px; }
+  .action-btn.save:hover { color: #2874f0; }
+
+  /* Delivery tag */
+  .item-delivery {
+    font-size: 0.76rem; color: #777; margin-top: 10px;
+  }
+  .item-delivery b { color: #333; }
+  .item-delivery .free { color: #388e3c; font-weight: 600; }
+
+  /* ── Empty State ── */
+  .empty-state {
+    display: none; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    background: #fff; border-radius: 4px;
+    border: 1px solid #e8e8e8;
+    padding: 64px 24px; gap: 12px;
+  }
+  .empty-state.show { display: flex; }
+  .empty-state .empty-icon { font-size: 4rem; opacity: 0.25; }
+  .empty-state h3 { font-size: 1.15rem; font-weight: 700; color: #555; font-family: 'Playfair Display', serif; }
+  .empty-state p  { font-size: 0.85rem; color: #aaa; }
+  .empty-state .shop-btn {
+    margin-top: 8px; background: #2874f0; color: #fff;
+    border: none; padding: 12px 32px; border-radius: 2px;
+    font-size: 0.95rem; font-weight: 600; cursor: pointer;
+    transition: background 0.2s;
+  }
+  .empty-state .shop-btn:hover { background: #1a5bbf; }
+
+  /* ── Summary Panel ── */
+  .summary-card {
+    background: #fff; border: 1px solid #e8e8e8;
+    border-radius: 4px; padding: 16px 20px;
+    margin-bottom: 12px;
+  }
+  .summary-title {
+    font-size: 0.75rem; font-weight: 700; color: #878787;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 12px; margin-bottom: 14px;
+  }
+  .summary-row {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.9rem; color: #444; margin-bottom: 12px;
+  }
+  .summary-row.discount { color: #388e3c; }
+  .summary-row.free     { color: #388e3c; font-weight: 500; }
+  .summary-divider { border: none; border-top: 1px dashed #e0e0e0; margin: 12px 0; }
+  .summary-total {
+    display: flex; justify-content: space-between;
+    font-size: 1rem; font-weight: 700; color: #212121;
+  }
+  .summary-save {
+    font-size: 0.82rem; color: #388e3c; font-weight: 600;
+    margin-top: 10px;
+  }
+
+  /* Place Order btn */
+  .place-btn {
+    display: none; width: 100%;
+    background: #fb641b; color: #fff;
+    border: none; padding: 16px;
+    font-size: 1rem; font-weight: 700;
+    letter-spacing: 0.06em;
+    border-radius: 2px; cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    margin-bottom: 12px;
+  }
+  .place-btn:hover  { background: #e05510; transform: translateY(-1px); }
+  .place-btn:active { transform: translateY(0); }
+  .place-btn.show { display: block; }
+
+  /* Safe badge */
+  .safe-badge {
+    display: flex; align-items: center; gap: 10px;
+    background: #f0f7ff; border: 1px solid #d0e6ff;
+    border-radius: 4px; padding: 10px 14px;
+    font-size: 0.78rem; color: #1a5bbf;
+    margin-bottom: 12px;
+  }
+
+  /* Offers */
+  .offers-card { background: #fff; border: 1px solid #e8e8e8; border-radius: 4px; padding: 14px 16px; }
+  .offers-title { font-size: 0.85rem; font-weight: 700; color: #212121; margin-bottom: 10px; }
+  .offer-row { display: flex; align-items: flex-start; gap: 8px; font-size: 0.82rem; color: #444; margin-bottom: 8px; }
+  .offer-badge {
+    background: #e8f5e9; color: #2e7d32;
+    font-size: 0.65rem; font-weight: 800;
+    padding: 2px 6px; border-radius: 3px;
+    white-space: nowrap; margin-top: 1px;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+    background: #212121; color: #fff;
+    padding: 12px 28px; border-radius: 6px;
+    font-size: 0.88rem; z-index: 9999;
+    opacity: 0; transition: opacity 0.3s;
+    pointer-events: none; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+
+<body>
+
+<!-- ══════════════════════ NAVBAR ══════════════════════ -->
+<nav class="navbar">
+  <span class="navbar-brand" onclick="goHome()">Velora</span>
+  <div class="navbar-links">
+    <button onclick="goHome()">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Home
+    </button>
+    <button onclick="goToWishlist()">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+      Wishlist
+    </button>
+  </div>
+</nav>
+
+<!-- ══════════════════════ PAGE ══════════════════════ -->
+<div class="page-wrap">
+
+  <!-- Step Bar -->
+  <div class="step-bar">
+    <span class="active">🛒 Cart</span>
+    <span class="sep">————</span>
+    <span>📍 Address</span>
+    <span class="sep">————</span>
+    <span>💳 Payment</span>
+    <span class="sep">————</span>
+    <span>✅ Order Placed</span>
+  </div>
+
+  <!-- Two-Column Layout -->
+  <div class="cart-layout">
+
+    <!-- ── LEFT: Items ── -->
+    <div>
+
+      <!-- Delivery Banner -->
+      <div class="delivery-banner">
+        <span style="font-size:1.1rem">🚚</span>
+        <span>Deliver to: <b>Delhi, 110001</b></span>
+        <button class="change-btn">Change</button>
+      </div>
+
+      <!-- Cart Items injected here -->
+      <div id="cart-container"></div>
+
+      <!-- Empty State -->
+      <div id="empty-cart" class="empty-state">
+        <div class="empty-icon">🛒</div>
+        <h3>Your cart is empty!</h3>
+        <p>Looks like you haven't added anything yet.</p>
+        <button class="shop-btn" onclick="goHome()">Shop Now</button>
+      </div>
+
+    </div>
+
+    <!-- ── RIGHT: Summary ── -->
+    <div id="summary-col">
+
+      <!-- Price Details -->
+      <div class="summary-card">
+        <div class="summary-title">Price Details</div>
+
+        <div class="summary-row">
+          <span>Price (<span id="item-count">0</span> items)</span>
+          <span id="summary-mrp">₹0</span>
+        </div>
+        <div class="summary-row discount">
+          <span>Discount</span>
+          <span id="summary-disc">−₹0</span>
+        </div>
+        <div class="summary-row">
+          <span>Delivery Charges</span>
+          <span class="free">FREE</span>
+        </div>
+        <div class="summary-row">
+          <span>Secured Packaging Fee</span>
+          <span>₹29</span>
+        </div>
+
+        <hr class="summary-divider">
+
+        <div class="summary-total">
+          <span>Total Amount</span>
+          <span id="summary-total">₹0</span>
+        </div>
+
+        <p class="summary-save" id="summary-save-row" style="display:none">
+          🎉 You will save <b id="summary-save">₹0</b> on this order
+        </p>
+      </div>
+
+      <!-- Place Order -->
+      <button class="place-btn" id="place-btn" onclick="placeOrder()">
+        PLACE ORDER &nbsp;→
+      </button>
+
+      <!-- Safe Badge -->
+      <div class="safe-badge">
+        <svg width="18" height="18" fill="none" stroke="#2874f0" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>Safe and Secure Payments. Easy returns. 100% Authentic products.</span>
+      </div>
+
+      <!-- Offers -->
+      <div class="offers-card">
+        <div class="offers-title">Available Offers</div>
+        <div class="offer-row">
+          <span class="offer-badge">BANK</span>
+          <span>10% off on SBI Credit Cards, up to ₹1,500 on orders of ₹5,000+</span>
+        </div>
+        <div class="offer-row">
+          <span class="offer-badge">UPI</span>
+          <span>5% cashback on UPI payments, up to ₹150</span>
+        </div>
+        <div class="offer-row">
+          <span class="offer-badge">EMI</span>
+          <span>No-cost EMI available on select cards</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ══════════════════════ SCRIPT ══════════════════════ -->
+<script>
+
+    
+
+       // 🔒 LOGIN CHECK (TOP — MUST BE FIRST)
+        if(!localStorage.getItem("loggedIn")){
+        alert("Please login first 🔒");
+        window.location = "login.html";
+}
+
+        let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+        /* ─── Render ─── */
+function renderCart() {
+  const container = document.getElementById("cart-container");
+  const emptyEl   = document.getElementById("empty-cart");
+  const placeBtn  = document.getElementById("place-btn");
+  container.innerHTML = "";
+
+  if (cart.length === 0) {
+    emptyEl.classList.add("show");
+    placeBtn.classList.remove("show");
+    updateSummary();
+    return;
+  }
+
+  emptyEl.classList.remove("show");
+  placeBtn.classList.add("show");
+
+  cart.forEach((item, i) => {
+    const qty      = item.qty || 1;
+    const price    = item.price || 0;
+    const origPrice = Math.round(price * 1.4);
+    const discPct  = Math.round(((origPrice - price) / origPrice) * 100);
+
+    const div = document.createElement("div");
+    div.className = "cart-item";
+    div.innerHTML = `
+      <!-- Image -->
+      <div class="item-img-box">
+        <img src="${item.img || 'images/shoes1.jpg'}" alt="${item.title}">
+      </div>
+
+      <!-- Content -->
+      <div class="item-content">
+        <div class="item-title">${item.title}</div>
+        <div class="item-meta">
+          Size: <b>${item.size || 'N/A'}</b> &nbsp;|&nbsp; Velora Originals
+        </div>
+
+        <!-- Price -->
+        <div class="item-price-row">
+          <span class="item-price">₹${price.toLocaleString("en-IN")}</span>
+          <span class="item-mrp">₹${origPrice.toLocaleString("en-IN")}</span>
+          <span class="item-discount">${discPct}% off</span>
+        </div>
+
+        <!-- Qty -->
+        <div class="qty-row">
+          <span class="qty-label">Qty:</span>
+          <div class="qty-controls">
+            <button class="qty-btn" onclick="changeQty(${i}, -1)">−</button>
+            <div class="qty-num">${qty}</div>
+            <button class="qty-btn" onclick="changeQty(${i}, +1)">+</button>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="item-actions">
+          <button class="action-btn remove" onclick="removeItem(${i})">REMOVE</button>
+          <button class="action-btn save"   onclick="saveForLater(${i})">SAVE FOR LATER</button>
+        </div>
+
+        <!-- Delivery -->
+        <div class="item-delivery">
+          📦 Delivery by <b>Tomorrow, 10 AM</b> — <span class="free">FREE Delivery</span>
+        </div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+
+  updateSummary();
+}
+
+/* ─── Qty ─── */
+function changeQty(i, delta) {
+  cart[i].qty = Math.max(1, (cart[i].qty || 1) + delta);
+  localStorage.setItem("cart", JSON.stringify(cart));
+  renderCart();
+}
+
+/* ─── Remove ─── */
+function removeItem(i) {
+  cart.splice(i, 1);
+  localStorage.setItem("cart", JSON.stringify(cart));
+  renderCart();
+  showToast("Item removed from cart");
+}
+
+/* ─── Save for Later ─── */
+function saveForLater(i) {
+  let wishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
+  wishlist.push(cart[i]);
+  localStorage.setItem("wishlist", JSON.stringify(wishlist));
+  removeItem(i);
+  showToast("🔖 Saved for later in Wishlist");
+}
+
+/* ─── Summary ─── */
+function updateSummary() {
+  let mrp = 0, total = 0, count = 0;
+
+  cart.forEach(item => {
+    const qty  = item.qty || 1;
+    const orig = Math.round((item.price || 0) * 1.4) * qty;
+    const fin  = (item.price || 0) * qty;
+    mrp   += orig;
+    total += fin;
+    count += qty;
+  });
+
+  const disc       = mrp - total;
+  const grandTotal = total > 0 ? total + 29 : 0;
+
+  document.getElementById("item-count").innerText    = count;
+  document.getElementById("summary-mrp").innerText   = "₹" + mrp.toLocaleString("en-IN");
+  document.getElementById("summary-disc").innerText  = "−₹" + disc.toLocaleString("en-IN");
+  document.getElementById("summary-total").innerText = "₹" + grandTotal.toLocaleString("en-IN");
+
+  const saveRow = document.getElementById("summary-save-row");
+  if (disc > 0) {
+    saveRow.style.display = "block";
+    document.getElementById("summary-save").innerText = "₹" + disc.toLocaleString("en-IN");
+  } else {
+    saveRow.style.display = "none";
+  }
+}
+
+/* ─── Place Order ─── */
+function placeOrder() {
+  localStorage.setItem("checkout-cart", JSON.stringify(cart));
+  window.location = "checkout.html";
+}
+
+/* ─── Toast ─── */
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.innerText = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2500);
+}
+
+/* ─── Nav ─── */
+function goHome()       { window.location = "shoes.html"; }
+function goToWishlist() { window.location = "wishlist.html"; }
+
+/* ─── Init ─── */
+renderCart();
+
+</script>
+</body>
+</html>
