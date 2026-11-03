@@ -157,7 +157,8 @@
       <script>
   function updateNavbar() {
     const isLoggedIn = localStorage.getItem("isLoggedIn");
-    const user = JSON.parse(localStorage.getItem("user"));
+    const email = localStorage.getItem("loggedInEmail");
+    const user = email ? { email: email } : JSON.parse(localStorage.getItem("user"));
     const authSection = document.getElementById("auth-section");
 
     if (isLoggedIn === "true" && user) {
@@ -170,13 +171,13 @@
             ${initial}
           </div>
           <span style="font-size:13px; color:#374151; max-width:140px;
-                       overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+          overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
             ${user.email}
           </span>
           <button onclick="logout()"
                   style="font-size:12px; padding:5px 12px; border-radius:9999px;
-                         border:1px solid #d1d5db; cursor:pointer; background:white;
-                         color:#6b7280;"
+                  border:1px solid #d1d5db; cursor:pointer; background:white;
+                  color:#6b7280;"
                   onmouseover="this.style.borderColor='#2563eb';this.style.color='#2563eb';"
                   onmouseout="this.style.borderColor='#d1d5db';this.style.color='#6b7280';">
             Logout

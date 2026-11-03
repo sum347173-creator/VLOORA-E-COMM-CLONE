@@ -649,6 +649,7 @@
       
       if (email === user.email && password === user.password) {
         localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("loggedInEmail", email);
         alert("✅ Login successful!");
         window.location.href = "index.html";
       } else {

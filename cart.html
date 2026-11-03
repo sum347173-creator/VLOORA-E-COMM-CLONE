@@ -399,10 +399,11 @@
     
 
        // 🔒 LOGIN CHECK (TOP — MUST BE FIRST)
-        if(!localStorage.getItem("loggedIn")){
-        alert("Please login first 🔒");
-        window.location = "login.html";
-}
+      if(localStorage.getItem("isLoggedIn") !== "true"){
+      alert("Please login first 🔒");
+      window.location = "login.html";
+      }
+
 
         let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
